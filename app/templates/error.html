@@ -1,0 +1,2 @@
+{% extends "base.html" %}{% block title %}{{ code }} — GANAS Forms{% endblock %}
+{% block body %}<main class="min-h-screen grid place-items-center px-5"><div class="text-center"><p class="text-7xl font-black text-navy">{{ code }}</p><h1 class="mt-4 text-2xl font-extrabold">{{ message }}</h1><a class="mt-7 inline-block rounded-xl bg-navy px-5 py-3 font-bold text-white" href="{{ url_for('public.home') }}">Kembali</a></div></main>{% endblock %}

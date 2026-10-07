@@ -1,0 +1,868 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}{{ form.title }} — GANAS Forms{% endblock %}
+
+{% block admin_content %}
+
+<div class="mx-auto w-full max-w-[1500px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-10">
+
+
+<!-- =========================================================
+     HEADER
+========================================================== -->
+<div
+    data-aos="fade-up"
+    class="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between"
+>
+
+    <div class="min-w-0">
+
+        <a
+            href="{{ url_for('admin.forms') }}"
+            class="inline-flex items-center gap-2 text-xs font-black text-slate-400 transition hover:text-blue"
+        >
+            <span class="text-base">←</span>
+            Kembali ke formulir
+        </a>
+
+        <!-- Status -->
+        <div class="mt-5 flex flex-wrap items-center gap-2">
+
+            {% if form.status == 'PUBLISHED' %}
+
+                <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-emerald-700">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                    Aktif
+                </span>
+
+            {% elif form.status == 'DRAFT' %}
+
+                <span class="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-amber-700">
+                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                    Draft
+                </span>
+
+            {% elif form.status == 'CLOSED' %}
+
+                <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-600">
+                    <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                    Ditutup
+                </span>
+
+            {% elif form.status == 'ARCHIVED' %}
+
+                <span class="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-red-700">
+                    <span class="h-1.5 w-1.5 rounded-full bg-red"></span>
+                    Arsip
+                </span>
+
+            {% else %}
+
+                <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-600">
+                    {{ form.status }}
+                </span>
+
+            {% endif %}
+
+
+            {% if form.deadline %}
+
+                <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-bold text-slate-500">
+                    <span>⏱</span>
+                    Deadline {{ form.deadline.strftime('%d %b %Y, %H:%M') }} WIB
+                </span>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- Title -->
+        <h1 class="mt-4 max-w-5xl break-words text-3xl font-black tracking-tight text-navy sm:text-4xl lg:text-5xl">
+            {{ form.title }}
+        </h1>
+
+
+        <!-- Description -->
+        {% if form.description %}
+
+            <p class="mt-4 max-w-3xl text-sm leading-7 text-slate-500 sm:text-base">
+                {{ form.description }}
+            </p>
+
+        {% else %}
+
+            <p class="mt-4 max-w-3xl text-sm italic leading-7 text-slate-400">
+                Formulir ini belum memiliki deskripsi.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- Header Actions -->
+    <div class="flex shrink-0 flex-wrap gap-2 xl:pt-8">
+
+        <a
+            target="_blank"
+            rel="noopener noreferrer"
+            href="{{ url_for('public.fill_form', slug=form.slug) }}"
+            class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-blue/30 hover:text-blue sm:flex-none"
+        >
+            Preview
+            <span>↗</span>
+        </a>
+
+        <a
+            href="{{ url_for('admin.edit_form', form_id=form.id) }}"
+            class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-navy px-4 py-3 text-sm font-black text-white shadow-lg shadow-navy/10 transition hover:-translate-y-0.5 hover:bg-blue sm:flex-none"
+        >
+            Edit Formulir
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     STATISTICS
+========================================================== -->
+<div class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+
+    <!-- Responses -->
+    <div
+        data-aos="fade-up"
+        data-aos-delay="50"
+        class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+    >
+
+        <div class="flex items-center justify-between gap-3">
+
+            <p class="text-[10px] font-black uppercase tracking-[.15em] text-slate-400 sm:text-xs">
+                Total Respons
+            </p>
+
+            <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-blue/10 text-blue">
+                ↗
+            </span>
+
+        </div>
+
+        <p class="mt-4 text-2xl font-black text-navy sm:text-3xl">
+            {{ form.responses|length }}
+        </p>
+
+        <p class="mt-1 text-[11px] font-semibold text-slate-400">
+            Data masuk
+        </p>
+
+    </div>
+
+
+    <!-- Questions -->
+    <div
+        data-aos="fade-up"
+        data-aos-delay="100"
+        class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+    >
+
+        <div class="flex items-center justify-between gap-3">
+
+            <p class="text-[10px] font-black uppercase tracking-[.15em] text-slate-400 sm:text-xs">
+                Pertanyaan
+            </p>
+
+            <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-navy/10 text-navy">
+                ?
+            </span>
+
+        </div>
+
+        <p class="mt-4 text-2xl font-black text-navy sm:text-3xl">
+            {{ form.questions|length }}
+        </p>
+
+        <p class="mt-1 text-[11px] font-semibold text-slate-400">
+            Field formulir
+        </p>
+
+    </div>
+
+
+    <!-- Status -->
+    <div
+        data-aos="fade-up"
+        data-aos-delay="150"
+        class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+    >
+
+        <div class="flex items-center justify-between gap-3">
+
+            <p class="text-[10px] font-black uppercase tracking-[.15em] text-slate-400 sm:text-xs">
+                Status
+            </p>
+
+            <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-red/10 text-red">
+                ●
+            </span>
+
+        </div>
+
+        <p class="mt-4 truncate text-lg font-black text-navy sm:text-xl">
+            {{ form.status }}
+        </p>
+
+        <p class="mt-1 text-[11px] font-semibold text-slate-400">
+            Status publikasi
+        </p>
+
+    </div>
+
+
+    <!-- Response Limit -->
+    <div
+        data-aos="fade-up"
+        data-aos-delay="200"
+        class="col-span-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:col-span-1 sm:p-5"
+    >
+
+        <div class="flex items-center justify-between gap-3">
+
+            <p class="text-[10px] font-black uppercase tracking-[.15em] text-slate-400 sm:text-xs">
+                Batas Respons
+            </p>
+
+            <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                #
+            </span>
+
+        </div>
+
+        <p class="mt-4 text-2xl font-black text-navy sm:text-3xl">
+
+            {% if form.response_limit %}
+                {{ form.response_limit }}
+            {% else %}
+                ∞
+            {% endif %}
+
+        </p>
+
+        <p class="mt-1 text-[11px] font-semibold text-slate-400">
+            {% if form.response_limit %}
+                Maksimal respons
+            {% else %}
+                Tidak dibatasi
+            {% endif %}
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================== -->
+<div class="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_350px]">
+
+    <!-- =====================================================
+         LEFT COLUMN
+    ====================================================== -->
+    <div class="min-w-0 space-y-6">
+
+
+        <!-- =================================================
+             RESPONSE MANAGEMENT
+        ================================================== -->
+        <section
+            data-aos="fade-up"
+            class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+        >
+
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                <div>
+
+                    <div class="flex items-center gap-2">
+
+                        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue/10 text-blue">
+                            ↗
+                        </span>
+
+                        <h2 class="text-lg font-black text-navy sm:text-xl">
+                            Kelola Respons
+                        </h2>
+
+                    </div>
+
+                    <p class="mt-2 text-xs leading-5 text-slate-400">
+                        Lihat data pendaftar dan unduh seluruh hasil respons formulir.
+                    </p>
+
+                </div>
+
+
+                <a
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue px-4 py-3 text-sm font-black text-white shadow-lg shadow-blue/10 transition hover:-translate-y-0.5 hover:bg-navy"
+                    href="{{ url_for('admin.responses', form_id=form.id) }}"
+                >
+                    Lihat Semua Respons
+                    <span>→</span>
+                </a>
+
+            </div>
+
+
+<!-- Export -->
+<div class="mt-6">
+    <p class="mb-3 text-[10px] font-black uppercase tracking-[.18em] text-slate-400">
+        Export Data
+    </p>
+
+    <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+
+        <!-- XLSX -->
+        <a
+            href="{{ url_for('admin.export', form_id=form.id, fmt='xlsx') }}"
+            class="group inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-md hover:shadow-emerald-100"
+        >
+            <span
+                class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[10px] font-black text-emerald-600 transition-all duration-200 group-hover:bg-emerald-600 group-hover:text-white"
+            >
+                XLSX
+            </span>
+
+            <span>Excel</span>
+        </a>
+
+        <!-- PDF -->
+        <a
+            href="{{ url_for('admin.export', form_id=form.id, fmt='pdf') }}"
+            class="group inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-50 hover:text-red-700 hover:shadow-md hover:shadow-red-100"
+        >
+            <span
+                class="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-[10px] font-black text-red transition-all duration-200 group-hover:bg-red group-hover:text-white"
+            >
+                PDF
+            </span>
+
+            <span>PDF</span>
+        </a>
+
+        <!-- CSV -->
+        <a
+            href="{{ url_for('admin.export', form_id=form.id, fmt='csv') }}"
+            class="group inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md hover:shadow-blue-100"
+        >
+            <span
+                class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-[10px] font-black text-blue transition-all duration-200 group-hover:bg-blue group-hover:text-white"
+            >
+                CSV
+            </span>
+
+            <span>CSV</span>
+        </a>
+
+    </div>
+</div>
+
+
+
+        </section>
+
+
+        <!-- =================================================
+             QUESTIONS
+        ================================================== -->
+        <section
+            data-aos="fade-up"
+            data-aos-delay="80"
+            class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+        >
+
+            <div class="border-b border-slate-100 p-5 sm:p-6">
+
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+                    <div>
+
+                        <h2 class="text-lg font-black text-navy sm:text-xl">
+                            Pertanyaan Form
+                        </h2>
+
+                        <p class="mt-1 text-xs leading-5 text-slate-400">
+                            {{ form.questions|length }}
+                            pertanyaan digunakan dalam formulir ini.
+                        </p>
+
+                    </div>
+
+                    <a
+                        href="{{ url_for('admin.edit_form', form_id=form.id) }}"
+                        class="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-black text-slate-600 transition hover:border-blue/30 hover:bg-blue/5 hover:text-blue"
+                    >
+                        Edit Pertanyaan
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            {% if form.questions %}
+
+                <div class="divide-y divide-slate-100">
+
+                    {% for q in form.questions %}
+
+                        <div class="p-5 transition hover:bg-slate-50/60 sm:p-6">
+
+                            <div class="flex gap-4">
+
+                                <!-- Number -->
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-navy text-xs font-black text-white shadow-sm">
+                                    {{ loop.index }}
+                                </span>
+
+
+                                <div class="min-w-0 flex-1">
+
+                                    <!-- Question header -->
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+
+                                        <div class="min-w-0">
+
+                                            <p class="break-words text-sm font-black leading-6 text-navy sm:text-base">
+
+                                                {{ q.label }}
+
+                                                {% if q.required %}
+                                                    <span class="ml-1 text-red">*</span>
+                                                {% endif %}
+
+                                            </p>
+
+                                            {% if q.description %}
+
+                                                <p class="mt-1.5 break-words text-xs leading-5 text-slate-500">
+                                                    {{ q.description }}
+                                                </p>
+
+                                            {% endif %}
+
+                                        </div>
+
+
+                                        <!-- Type -->
+                                        <span class="inline-flex w-fit shrink-0 rounded-lg bg-slate-100 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-500">
+                                            {{ q.type }}
+                                        </span>
+
+                                    </div>
+
+
+                                    <!-- Options -->
+                                    {% if q.options %}
+
+                                        <div class="mt-4">
+
+                                            <p class="mb-2 text-[10px] font-black uppercase tracking-[.15em] text-slate-400">
+                                                Pilihan
+                                            </p>
+
+                                            <div class="flex flex-wrap gap-2">
+
+                                                {% for option in q.options %}
+
+                                                    <span class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600">
+                                                        {{ option.label }}
+                                                    </span>
+
+                                                {% endfor %}
+
+                                            </div>
+
+                                        </div>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="p-12 text-center sm:p-16">
+
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-xl text-slate-400">
+                        ?
+                    </div>
+
+                    <h3 class="mt-5 text-lg font-black text-navy">
+                        Belum ada pertanyaan
+                    </h3>
+
+                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">
+                        Formulir ini belum memiliki pertanyaan.
+                        Tambahkan pertanyaan melalui editor formulir.
+                    </p>
+
+                    <a
+                        href="{{ url_for('admin.edit_form', form_id=form.id) }}"
+                        class="mt-5 inline-flex rounded-xl bg-navy px-5 py-3 text-sm font-black text-white transition hover:bg-blue"
+                    >
+                        Tambahkan Pertanyaan
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+    </div>
+
+
+    <!-- =====================================================
+         RIGHT SIDEBAR
+    ====================================================== -->
+    <aside class="min-w-0 space-y-5 xl:sticky xl:top-6 xl:self-start">
+
+
+        <!-- =================================================
+             FORM ACTIONS
+        ================================================== -->
+        <section
+            data-aos="fade-left"
+            class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+        >
+
+            <div>
+
+                <p class="text-[10px] font-black uppercase tracking-[.2em] text-slate-400">
+                    Aksi Formulir
+                </p>
+
+                <p class="mt-2 text-xs leading-5 text-slate-400">
+                    Ubah status dan kelola siklus formulir.
+                </p>
+
+            </div>
+
+
+            <div class="mt-5 space-y-2">
+
+
+                {% if form.status != 'PUBLISHED' %}
+
+                    <form
+                        method="post"
+                        action="{{ url_for('admin.set_status', form_id=form.id, status='PUBLISHED') }}"
+                        onsubmit="return confirm('Publikasikan formulir ini sekarang? Formulir akan tersedia untuk pengguna.');"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <button
+                            type="submit"
+                            class="flex w-full items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left text-sm font-black text-emerald-700 transition hover:bg-emerald-100"
+                        >
+                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-white">
+                                ✓
+                            </span>
+
+                            <span>Publikasikan</span>
+                        </button>
+
+                    </form>
+
+                {% endif %}
+
+
+                {% if form.status == 'PUBLISHED' %}
+
+                    <form
+                        method="post"
+                        action="{{ url_for('admin.set_status', form_id=form.id, status='CLOSED') }}"
+                        onsubmit="return confirm('Tutup formulir ini? Pengguna tidak akan dapat mengirim respons baru.');"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+
+                    </form>
+
+                {% endif %}
+
+
+                {% if form.status != 'ARCHIVED' %}
+
+                    <form
+                        method="post"
+                        action="{{ url_for('admin.set_status', form_id=form.id, status='ARCHIVED') }}"
+                        onsubmit="return confirm('Arsipkan formulir ini?');"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <button
+                            type="submit"
+                            class="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-black text-slate-600 transition hover:bg-slate-50"
+                        >
+                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100">
+                                ▣
+                            </span>
+
+                            <span>Arsipkan</span>
+                        </button>
+
+                    </form>
+
+                {% endif %}
+
+
+                <form
+                    method="post"
+                    action="{{ url_for('admin.duplicate', form_id=form.id) }}"
+                    onsubmit="return confirm('Duplikat formulir ini sebagai draft?');"
+                >
+
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token() }}"
+                    >
+
+                    <button
+                        type="submit"
+                        class="flex w-full items-center gap-3 rounded-xl bg-navy px-4 py-3 text-left text-sm font-black text-white transition hover:bg-blue"
+                    >
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10">
+                            +
+                        </span>
+
+                        <span>Duplikat Formulir</span>
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PUBLIC URL
+        ================================================== -->
+        <section
+            data-aos="fade-left"
+            data-aos-delay="80"
+            class="rounded-3xl bg-navy p-6 text-white shadow-xl shadow-navy/10"
+        >
+
+            <div class="flex items-center justify-between gap-3">
+
+                <p class="text-[10px] font-black uppercase tracking-[.2em] text-white/40">
+                    Public URL
+                </p>
+
+                <span class="rounded-full bg-white/10 px-2 py-1 text-[9px] font-black uppercase text-white/50">
+                    {{ form.status }}
+                </span>
+
+            </div>
+
+
+            <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+
+                <p
+                    id="public-url"
+                    class="break-all text-xs leading-6 text-white/60"
+                >
+                    {{ url_for('public.fill_form', slug=form.slug, _external=True) }}
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                onclick="copyPublicUrl()"
+                class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-xs font-black text-navy transition hover:bg-blue-50"
+            >
+                <span>⧉</span>
+                <span id="copy-url-text">Salin URL</span>
+            </button>
+
+        </section>
+
+
+        <!-- =================================================
+             FORM INFORMATION
+        ================================================== -->
+        <section
+            data-aos="fade-left"
+            data-aos-delay="120"
+            class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+        >
+
+            <p class="text-[10px] font-black uppercase tracking-[.2em] text-slate-400">
+                Informasi Form
+            </p>
+
+
+            <div class="mt-5 space-y-4">
+
+                <div class="flex items-start justify-between gap-4">
+
+                    <span class="text-xs font-semibold text-slate-400">
+                        Slug
+                    </span>
+
+                    <span class="max-w-[190px] break-all text-right text-xs font-bold text-slate-600">
+                        {{ form.slug }}
+                    </span>
+
+                </div>
+
+
+                <div class="h-px bg-slate-100"></div>
+
+
+                <div class="flex items-start justify-between gap-4">
+
+                    <span class="text-xs font-semibold text-slate-400">
+                        Respons
+                    </span>
+
+                    <span class="text-right text-xs font-bold text-slate-600">
+                        {{ form.responses|length }}
+                    </span>
+
+                </div>
+
+
+                <div class="h-px bg-slate-100"></div>
+
+
+                <div class="flex items-start justify-between gap-4">
+
+                    <span class="text-xs font-semibold text-slate-400">
+                        Pertanyaan
+                    </span>
+
+                    <span class="text-right text-xs font-bold text-slate-600">
+                        {{ form.questions|length }}
+                    </span>
+
+                </div>
+
+
+                <div class="h-px bg-slate-100"></div>
+
+
+                <div class="flex items-start justify-between gap-4">
+
+                    <span class="text-xs font-semibold text-slate-400">
+                        Multi Respons
+                    </span>
+
+                    <span class="text-right text-xs font-bold text-slate-600">
+                        {% if form.allow_multiple %}
+                            Diizinkan
+                        {% else %}
+                            Sekali
+                        {% endif %}
+                    </span>
+
+                </div>
+
+
+                {% if form.created_at %}
+
+                    <div class="h-px bg-slate-100"></div>
+
+                    <div class="flex items-start justify-between gap-4">
+
+                        <span class="text-xs font-semibold text-slate-400">
+                            Dibuat
+                        </span>
+
+                        <span class="text-right text-xs font-bold text-slate-600">
+                            {{ form.created_at.strftime('%d %b %Y, %H:%M') }}
+                        </span>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+    </aside>
+
+</div>
+
+
+</div>
+
+<!-- =============================================================
+     COPY PUBLIC URL
+============================================================= -->
+
+<script>
+function copyPublicUrl() {
+    const urlElement = document.getElementById("public-url");
+    const buttonText = document.getElementById("copy-url-text");
+
+    if (!urlElement || !buttonText) {
+        return;
+    }
+
+    const url = urlElement.innerText.trim();
+
+    if (!url) {
+        return;
+    }
+
+    navigator.clipboard.writeText(url)
+        .then(function () {
+            buttonText.textContent = "URL berhasil disalin ✓";
+
+            setTimeout(function () {
+                buttonText.textContent = "Salin URL";
+            }, 1800);
+        })
+        .catch(function () {
+            buttonText.textContent = "Gagal menyalin";
+
+            setTimeout(function () {
+                buttonText.textContent = "Salin URL";
+            }, 1800);
+        });
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,421 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Formulir — GANAS Forms{% endblock %}
+
+{% block admin_content %}
+
+<div class="mx-auto max-w-[1550px] p-5 sm:p-7 lg:p-10">
+
+    <!-- ========================= HEADER ========================= -->
+    <div
+        data-aos="fade-up"
+        data-aos-once="true"
+        class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"
+    >
+        <div>
+            <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-red">
+                <span class="h-1.5 w-1.5 rounded-full bg-red"></span>
+                Workspace
+            </div>
+
+            <h1 class="mt-3 text-3xl font-black tracking-tight text-navy sm:text-4xl">
+                Formulir
+            </h1>
+
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                Buat, kelola, publikasikan, dan pantau seluruh formulir GANAS
+                dari satu tempat.
+            </p>
+        </div>
+
+        <a
+            href="{{ url_for('admin.create_form') }}"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-red px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-red/15 transition duration-200 hover:-translate-y-0.5 hover:bg-red/90"
+        >
+            <span class="text-lg leading-none">+</span>
+            Buat Formulir
+        </a>
+    </div>
+
+
+    <!-- ========================= FILTER ========================= -->
+    <div
+        data-aos="fade-up"
+        data-aos-delay="50"
+        data-aos-once="true"
+        class="mt-8 overflow-x-auto pb-1"
+    >
+        <div class="inline-flex min-w-max items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+            {% set filter_labels = {
+                'ALL': 'Semua',
+                'PUBLISHED': 'Aktif',
+                'DRAFT': 'Draft',
+                'CLOSED': 'Ditutup',
+                'ARCHIVED': 'Arsip'
+            } %}
+
+            {% for s, label in filter_labels.items() %}
+                <a
+                    href="{{ url_for('admin.forms', status=s) }}"
+                    class="rounded-xl px-4 py-2.5 text-xs font-black transition
+                        {% if active_status == s %}bg-navy text-white shadow-md shadow-navy/15{% else %}text-slate-500 hover:bg-slate-50 hover:text-navy{% endif %}"
+                >
+                    {{ label }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+
+    <!-- ========================= FORM GRID ========================= -->
+    <div class="mt-7 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+
+        {% for f in forms %}
+
+        {# Wrapper AOS dipisah dari card agar tidak bentrok dengan transform hover #}
+        <div
+            data-aos="fade-up"
+            data-aos-delay="{{ (loop.index0 * 50) if loop.index0 < 6 else 0 }}"
+            data-aos-once="true"
+            class="h-full"
+        >
+            <article
+                class="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl hover:shadow-navy/10"
+            >
+                <!-- Top accent -->
+                <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-navy via-blue to-red"></div>
+
+                <div class="flex flex-1 flex-col p-5 sm:p-6">
+
+                    <!-- STATUS + JUMLAH RESPONS -->
+                    <div class="flex items-center justify-between gap-3 pt-1">
+
+                        {% if f.status == 'PUBLISHED' %}
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-emerald-700">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                Aktif
+                            </span>
+                        {% elif f.status == 'DRAFT' %}
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-amber-700">
+                                <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                Draft
+                            </span>
+                        {% elif f.status == 'CLOSED' %}
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-600">
+                                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                Ditutup
+                            </span>
+                        {% elif f.status == 'ARCHIVED' %}
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-red/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-red">
+                                <span class="h-1.5 w-1.5 rounded-full bg-red"></span>
+                                Arsip
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-600">
+                                <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                {{ f.status }}
+                            </span>
+                        {% endif %}
+
+                        <span class="shrink-0 text-xs font-bold text-slate-400">
+                            {{ f.responses|length }} respons
+                        </span>
+                    </div>
+
+
+                    <!-- JUDUL (tinggi tetap 2 baris agar semua card sejajar) -->
+                    <h2
+                        class="mt-5 line-clamp-2 min-h-[3.5rem] break-words text-xl font-black leading-7 text-navy transition-colors duration-200 group-hover:text-blue"
+                        title="{{ f.title }}"
+                    >
+                        {{ f.title }}
+                    </h2>
+
+
+                    <!-- DESKRIPSI (tinggi tetap 3 baris) -->
+                    <p class="mt-2 line-clamp-3 min-h-[4.5rem] break-words text-sm leading-6 text-slate-500">
+                        {% if f.description %}
+                            {{ f.description }}
+                        {% else %}
+                            <span class="italic text-slate-400">Tidak ada deskripsi formulir.</span>
+                        {% endif %}
+                    </p>
+
+
+                    <!-- META -->
+                    <div class="mt-5 space-y-3 border-t border-slate-100 pt-4">
+
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex min-w-0 items-center gap-2 text-xs font-bold text-slate-500">
+                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue/10 text-xs font-black text-blue">
+                                    ?
+                                </span>
+                                <span class="truncate">{{ f.questions|length }} pertanyaan</span>
+                            </div>
+
+                            {% if f.response_limit %}
+                                <span class="shrink-0 text-[11px] font-bold text-slate-400">
+                                    Maks. {{ f.response_limit }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex min-h-[1.75rem] min-w-0 items-center gap-2 text-xs font-semibold text-slate-400">
+                            {% if f.deadline %}
+                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red/10 text-red">
+                                    ⏱
+                                </span>
+                                <span class="truncate">
+                                    Deadline {{ f.deadline.strftime('%d %b %Y, %H:%M') }}
+                                </span>
+                            {% else %}
+                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                                    ∞
+                                </span>
+                                <span class="truncate">Tanpa deadline</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+
+                    <!-- AKSI (selalu menempel di bawah card) -->
+                    <div class="mt-auto grid grid-cols-3 gap-2 pt-6">
+
+                        <a
+                            href="{{ url_for('admin.form_detail', form_id=f.id) }}"
+                            class="inline-flex items-center justify-center rounded-xl bg-navy px-3 py-3 text-xs font-black text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:bg-blue hover:shadow-md sm:text-sm"
+                        >
+                            Kelola
+                        </a>
+
+                        <a
+                            href="{{ url_for('admin.edit_form', form_id=f.id) }}"
+                            class="inline-flex items-center justify-center rounded-xl bg-blue px-3 py-3 text-xs font-black text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:bg-navy hover:shadow-md sm:text-sm"
+                        >
+                            Edit
+                        </a>
+
+                        <button
+                            type="button"
+                            class="delete-form-btn inline-flex items-center justify-center rounded-xl border border-red/30 bg-red/10 px-3 py-3 text-xs font-black text-red shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-red hover:bg-red hover:text-white hover:shadow-md sm:text-sm"
+                            data-form-title="{{ f.title }}"
+                            data-delete-url="{{ url_for('admin.delete_form', form_id=f.id) }}"
+                        >
+                            Hapus
+                        </button>
+                    </div>
+
+                </div>
+            </article>
+        </div>
+
+        {% else %}
+
+        <!-- ========================= EMPTY STATE ========================= -->
+        <div
+            data-aos="fade-up"
+            data-aos-once="true"
+            class="col-span-full overflow-hidden rounded-[2rem] border border-dashed border-slate-300 bg-white px-6 py-20 text-center shadow-sm"
+        >
+            <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-navy text-2xl font-black text-white shadow-xl shadow-navy/15">
+                G
+            </div>
+
+            <h3 class="mt-6 text-xl font-black text-navy sm:text-2xl">
+                Belum ada formulir
+            </h3>
+
+            <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                Belum ada formulir pada kategori ini.
+                Mulai dengan membuat formulir baru untuk kebutuhan
+                pendaftaran, pendataan, survei, atau kegiatan GANAS.
+            </p>
+
+            <a
+                href="{{ url_for('admin.create_form') }}"
+                class="mt-7 inline-flex items-center gap-2 rounded-xl bg-red px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-red/15 transition hover:-translate-y-0.5 hover:bg-red/90"
+            >
+                <span class="text-lg leading-none">+</span>
+                Buat Formulir
+            </a>
+        </div>
+
+        {% endfor %}
+
+    </div>
+</div>
+
+
+<!-- =============================================================
+     DELETE MODAL
+============================================================== -->
+<div
+    id="deleteModal"
+    class="fixed inset-0 z-[9999] hidden items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+    aria-hidden="true"
+>
+    <div
+        id="deleteModalPanel"
+        class="w-full max-w-md scale-95 transform overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white opacity-0 shadow-2xl transition duration-150 ease-out"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deleteModalTitle"
+    >
+
+        <!-- Aksen merah di atas modal -->
+        <div class="h-1.5 w-full bg-red"></div>
+
+        <!-- HEADER -->
+        <div class="border-b border-slate-100 px-6 py-5">
+            <div class="flex items-start gap-4">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red/10 text-xl font-black text-red">
+                    !
+                </div>
+                <div class="min-w-0">
+                    <h3 id="deleteModalTitle" class="text-lg font-black text-navy">
+                        Hapus formulir?
+                    </h3>
+                    <p class="mt-1 text-sm leading-5 text-slate-500">
+                        Tindakan ini tidak dapat dibatalkan.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="px-6 py-5">
+            <p class="text-sm leading-6 text-slate-500">Kamu akan menghapus formulir:</p>
+
+            <div class="mt-3 rounded-xl border border-red/20 bg-red/10 px-4 py-3">
+                <p id="deleteFormTitle" class="break-words text-sm font-black text-red">-</p>
+            </div>
+
+            <p class="mt-4 text-xs leading-5 text-slate-400">
+                Semua pertanyaan, pilihan, dan respons yang terkait
+                dengan formulir ini juga akan ikut dihapus.
+            </p>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="flex flex-col-reverse gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
+
+            <button
+                type="button"
+                id="cancelDeleteBtn"
+                class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-navy"
+            >
+                Batal
+            </button>
+
+            <form id="deleteForm" method="POST" action="" class="sm:inline-block">
+                {% if csrf_token is defined %}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% endif %}
+
+                <button
+                    type="submit"
+                    id="confirmDeleteBtn"
+                    class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-red px-5 py-3 text-sm font-black text-white shadow-lg shadow-red/20 transition hover:bg-red/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                >
+                    Hapus Formulir
+                </button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- =============================================================
+     DELETE MODAL SCRIPT (satu-satunya script modal)
+============================================================== -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const modal       = document.getElementById("deleteModal");
+    const panel       = document.getElementById("deleteModalPanel");
+    const form        = document.getElementById("deleteForm");
+    const titleEl     = document.getElementById("deleteFormTitle");
+    const cancelBtn   = document.getElementById("cancelDeleteBtn");
+    const confirmBtn  = document.getElementById("confirmDeleteBtn");
+
+    if (!modal || !panel || !form || !titleEl || !cancelBtn || !confirmBtn) {
+        console.error("Elemen modal hapus tidak lengkap.");
+        return;
+    }
+
+    // Pindahkan modal ke <body> supaya tidak terjebak stacking context layout admin
+    document.body.appendChild(modal);
+
+    let lastFocused = null;
+
+    function openModal(title, url) {
+        lastFocused = document.activeElement;
+
+        titleEl.textContent = title;
+        form.action = url;
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "Hapus Formulir";
+
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("overflow-hidden");
+
+        requestAnimationFrame(function () {
+            panel.classList.remove("scale-95", "opacity-0");
+            panel.classList.add("scale-100", "opacity-100");
+        });
+
+        cancelBtn.focus();
+    }
+
+    function closeModal() {
+        panel.classList.remove("scale-100", "opacity-100");
+        panel.classList.add("scale-95", "opacity-0");
+
+        setTimeout(function () {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+            modal.setAttribute("aria-hidden", "true");
+            document.body.classList.remove("overflow-hidden");
+
+            if (lastFocused && typeof lastFocused.focus === "function") {
+                lastFocused.focus();
+            }
+        }, 150);
+    }
+
+    // Tombol Hapus pada card (event delegation)
+    document.addEventListener("click", function (event) {
+        const btn = event.target.closest(".delete-form-btn");
+        if (!btn) return;
+
+        event.preventDefault();
+        openModal(btn.dataset.formTitle || "-", btn.dataset.deleteUrl || "");
+    });
+
+    // Batal
+    cancelBtn.addEventListener("click", closeModal);
+
+    // Klik backdrop
+    modal.addEventListener("click", function (event) {
+        if (event.target === modal) closeModal();
+    });
+
+    // ESC
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !modal.classList.contains("hidden")) {
+            closeModal();
+        }
+    });
+
+    // Cegah double submit
+    form.addEventListener("submit", function () {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = "Menghapus...";
+    });
+});
+</script>
+
+{% endblock %}

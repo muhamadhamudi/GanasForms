@@ -1,0 +1,60 @@
+{% extends "admin/layout.html" %}
+{% block title %}Respons — {{ form.title }}{% endblock %}
+{% block admin_content %}
+<div class="mx-auto max-w-[1500px] p-5 sm:p-7 lg:p-10">
+    <a href="{{ url_for('admin.form_detail',form_id=form.id) }}" class="inline-flex items-center gap-2 text-xs font-extrabold text-slate-400 hover:text-blue">← Kembali ke form</a>
+
+    <div class="mt-5 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div class="min-w-0">
+            <div class="text-xs font-black uppercase tracking-[.2em] text-red">Response Management</div>
+            <h1 class="mt-3 break-words text-3xl font-black tracking-tight text-navy sm:text-4xl">{{ form.title }}</h1>
+            <p class="mt-2 text-sm text-slate-500"><strong>{{ pagination.total }}</strong> total respons masuk.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-600 hover:border-blue/30 hover:text-blue" href="{{ url_for('admin.export',form_id=form.id,fmt='csv') }}">CSV</a>
+            <a class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-600 hover:border-blue/30 hover:text-blue" href="{{ url_for('admin.export',form_id=form.id,fmt='pdf') }}">PDF</a>
+            <a class="rounded-xl bg-navy px-4 py-3 text-sm font-extrabold text-white hover:bg-blue" href="{{ url_for('admin.export',form_id=form.id,fmt='xlsx') }}">Download Excel</a>
+        </div>
+    </div>
+
+    <div class="mt-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+            <p class="text-xs font-bold text-slate-500">Tip: geser tabel ke samping pada layar kecil untuk melihat kolom lainnya.</p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[1000px] text-left text-sm">
+                <thead class="bg-navy text-[11px] font-black uppercase tracking-wider text-white/80">
+                    <tr>
+                        <th class="px-5 py-4">No.</th>
+                        <th class="px-5 py-4">Waktu</th>
+                        {% for q in form.questions[:6] %}<th class="px-5 py-4">{{ q.label }}</th>{% endfor %}
+                        <th class="px-5 py-4">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for r in pagination.items %}
+                    <tr class="border-t border-slate-100 transition hover:bg-slate-50">
+                        <td class="px-5 py-4 font-black text-navy">{{ loop.index + (pagination.page-1)*pagination.per_page }}</td>
+                        <td class="whitespace-nowrap px-5 py-4 text-xs text-slate-500">{{ r.submitted_at.strftime('%d/%m/%Y %H:%M') if r.submitted_at else '-' }}</td>
+                        {% set m={} %}{% for a in r.answers %}{% set _=m.update({a.question_id:a.answer}) %}{% endfor %}
+                        {% for q in form.questions[:6] %}
+                        <td class="max-w-[230px] truncate px-5 py-4 text-slate-600">{{ m.get(q.id,'—') }}</td>
+                        {% endfor %}
+                        <td class="px-5 py-4"><a class="whitespace-nowrap rounded-lg bg-blue/5 px-3 py-2 text-xs font-black text-blue hover:bg-blue hover:text-white" href="{{ url_for('admin.response_detail',form_id=form.id,response_id=r.id) }}">Detail →</a></td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="99" class="px-6 py-16 text-center"><p class="text-sm font-bold text-slate-500">Belum ada respons.</p><p class="mt-1 text-xs text-slate-400">Data akan muncul setelah pengguna mengirim formulir.</p></td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="flex flex-col gap-3 border-t border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <span class="text-xs font-semibold text-slate-400">Halaman {{ pagination.page }} / {{ pagination.pages or 1 }}</span>
+            <div class="flex gap-2">
+                {% if pagination.has_prev %}<a class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-black text-slate-600 hover:border-blue/30 hover:text-blue" href="{{ url_for('admin.responses',form_id=form.id,page=pagination.prev_num) }}">← Sebelumnya</a>{% endif %}
+                {% if pagination.has_next %}<a class="rounded-xl bg-navy px-4 py-2 text-xs font-black text-white hover:bg-blue" href="{{ url_for('admin.responses',form_id=form.id,page=pagination.next_num) }}">Berikutnya →</a>{% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
